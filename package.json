@@ -1,0 +1,19 @@
+{
+  "name": "stx402-alpha",
+  "version": "1.0.0",
+  "description": "Premium Alpha Intelligence - aggregates multiple x402 data sources into actionable trading intelligence",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "hono": "^4.11.3"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "wrangler": "^3.0.0"
+  }
+}
