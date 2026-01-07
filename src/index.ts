@@ -10,8 +10,8 @@ import { generateAlphaSummary } from './synthesis';
 const CONTRACT = {
   address: 'SPP5ZMH9NQDFD2K5CEQZ6P02AP8YPWMQ75TJW20M',
   name: 'simple-oracle',
-  price: 5000, // 5000 microSTX = 0.005 STX for full alpha report
-  quickPrice: 2000, // 2000 microSTX = 0.002 STX for quick version
+  price: 1, // 1 microSTX for testing
+  quickPrice: 1, // 1 microSTX for testing
   recipient: 'SPP5ZMH9NQDFD2K5CEQZ6P02AP8YPWMQ75TJW20M',
 };
 
