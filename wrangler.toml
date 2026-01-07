@@ -5,3 +5,8 @@ workers_dev = true
 
 # Optional: Add OPENAI_API_KEY via: wrangler secret put OPENAI_API_KEY
 # This enables AI-powered alpha summaries instead of template-based ones
+
+# Custom domain
+[[routes]]
+pattern = "alpha.pbtc21.dev"
+custom_domain = true
