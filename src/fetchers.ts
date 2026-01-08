@@ -13,9 +13,9 @@ const PYTH = {
 };
 
 // Token configuration for price sources
-const TOKEN_CONFIG: Record<string, { coingecko: string; binance: string; cryptocompare: string; pyth?: 'BTC' | 'STX' }> = {
-  BTC: { coingecko: 'bitcoin', binance: 'BTCUSDT', cryptocompare: 'BTC', pyth: 'BTC' },
-  STX: { coingecko: 'blockstack', binance: 'STXUSDT', cryptocompare: 'STX', pyth: 'STX' },
+const TOKEN_CONFIG: Record<string, { coingecko: string; kucoin: string; coinpaprika: string; pyth?: 'BTC' | 'STX' }> = {
+  BTC: { coingecko: 'bitcoin', kucoin: 'BTC-USDT', coinpaprika: 'btc-bitcoin', pyth: 'BTC' },
+  STX: { coingecko: 'blockstack', kucoin: 'STX-USDT', coinpaprika: 'stx-stacks', pyth: 'STX' },
 };
 
 // Parse Clarity hex value to BigInt
@@ -105,29 +105,30 @@ export async function fetchTokenPrices(token: string): Promise<TokenPrices> {
       }))
       .catch(e => ({ source: 'coingecko', type: 'aggregator', price: null, timestamp: null, error: e.message })),
 
-    // Binance
-    fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${ids.binance}`)
+    // KuCoin
+    fetch(`https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${ids.kucoin}`)
       .then(r => r.json())
       .then((data: any) => ({
-        source: 'binance',
+        source: 'kucoin',
         type: 'exchange',
-        price: data.price ? parseFloat(data.price) : null,
-        timestamp: Date.now(),
-        error: data.code ? data.msg : null,
+        price: data.data?.price ? parseFloat(data.data.price) : null,
+        timestamp: data.data?.time ?? Date.now(),
+        error: data.code !== '200000' ? data.msg : null,
       }))
-      .catch(e => ({ source: 'binance', type: 'exchange', price: null, timestamp: null, error: e.message })),
+      .catch(e => ({ source: 'kucoin', type: 'exchange', price: null, timestamp: null, error: e.message })),
 
-    // CryptoCompare
-    fetch(`https://min-api.cryptocompare.com/data/price?fsym=${ids.cryptocompare}&tsyms=USD`)
+    // CoinPaprika
+    fetch(`https://api.coinpaprika.com/v1/tickers/${ids.coinpaprika}`)
       .then(r => r.json())
       .then((data: any) => ({
-        source: 'cryptocompare',
+        source: 'coinpaprika',
         type: 'aggregator',
-        price: data.USD ?? null,
-        timestamp: Date.now(),
-        error: data.Message || null,
+        price: data.quotes?.USD?.price ?? null,
+        change_24h: data.quotes?.USD?.percent_change_24h ?? null,
+        timestamp: data.last_updated ? new Date(data.last_updated).getTime() : Date.now(),
+        error: data.error ?? null,
       }))
-      .catch(e => ({ source: 'cryptocompare', type: 'aggregator', price: null, timestamp: null, error: e.message })),
+      .catch(e => ({ source: 'coinpaprika', type: 'aggregator', price: null, timestamp: null, error: e.message })),
 
     // Kraken
     fetch(`https://api.kraken.com/0/public/Ticker?pair=${token}USD`)

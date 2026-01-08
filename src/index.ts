@@ -213,7 +213,8 @@ app.get('/', (c) => {
     <div class="data-sources">
       <span class="source-tag">Pyth Oracle</span>
       <span class="source-tag">CoinGecko</span>
-      <span class="source-tag">Binance</span>
+      <span class="source-tag">KuCoin</span>
+      <span class="source-tag">CoinPaprika</span>
       <span class="source-tag">Kraken</span>
       <span class="source-tag">Fear & Greed</span>
       <span class="source-tag">Hiro Whale API</span>
@@ -371,7 +372,7 @@ app.get('/', (c) => {
           liquidationRisk: "29.8% BTC drop"
         },
         data_sources: {
-          prices: "BTC & STX from Pyth, CoinGecko, Binance, Kraken, CryptoCompare",
+          prices: "BTC & STX from Pyth, CoinGecko, KuCoin, CoinPaprika, Kraken",
           sentiment: "Fear & Greed + momentum analysis",
           whale_activity: "Hiro API large transactions"
         }
