@@ -38,6 +38,160 @@ const app = new Hono<{ Bindings: Bindings }>();
 
 app.use('*', cors());
 
+// x402 Discovery endpoint - describes all paid resources
+app.get('/x402', (c) => {
+  return c.json({
+    x402Version: 1,
+    name: "x402 Alpha Intelligence",
+    accepts: [
+      {
+        scheme: "exact",
+        network: "stacks",
+        maxAmountRequired: CONTRACT.price.toString(),
+        resource: "/alpha",
+        description: "Full alpha intelligence report with all signals, risk assessment, whale activity, and AI-generated summary",
+        mimeType: "application/json",
+        payTo: CONTRACT.recipient,
+        maxTimeoutSeconds: 300,
+        asset: "STX",
+        outputSchema: {
+          input: {
+            type: "object",
+            properties: {
+              tokenType: { type: "string", enum: ["STX", "sBTC"], description: "Payment token type" }
+            }
+          },
+          output: {
+            type: "object",
+            properties: {
+              timestamp: { type: "string", format: "date-time" },
+              payment_verified: { type: "boolean" },
+              caller: { type: "string" },
+              market_snapshot: {
+                type: "object",
+                properties: {
+                  btc_price: { type: "number" },
+                  stx_price: { type: "number" },
+                  sentiment: { type: "string" },
+                  fear_greed: { type: "number" }
+                }
+              },
+              signals: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    type: { type: "string" },
+                    severity: { type: "string", enum: ["low", "medium", "high"] },
+                    description: { type: "string" },
+                    action: { type: "string" }
+                  }
+                }
+              },
+              alpha_summary: { type: "string" },
+              risk_assessment: {
+                type: "object",
+                properties: {
+                  overall: { type: "string", enum: ["low", "moderate", "high", "extreme"] },
+                  liquidation_risk: { type: "string" },
+                  volatility_regime: { type: "string" }
+                }
+              },
+              yield_opportunity: {
+                type: "object",
+                properties: {
+                  effectiveApy: { type: "number" },
+                  collateralMultiple: { type: "number" },
+                  liquidationRisk: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        scheme: "exact",
+        network: "stacks",
+        maxAmountRequired: CONTRACT.quickPrice.toString(),
+        resource: "/alpha/quick",
+        description: "Quick market snapshot with top 3 signals and overall risk level",
+        mimeType: "application/json",
+        payTo: CONTRACT.recipient,
+        maxTimeoutSeconds: 60,
+        asset: "STX",
+        outputSchema: {
+          input: {
+            type: "object",
+            properties: {
+              tokenType: { type: "string", enum: ["STX", "sBTC"], description: "Payment token type" }
+            }
+          },
+          output: {
+            type: "object",
+            properties: {
+              timestamp: { type: "string", format: "date-time" },
+              payment_verified: { type: "boolean" },
+              caller: { type: "string" },
+              quick_snapshot: {
+                type: "object",
+                properties: {
+                  btc: { type: "string" },
+                  stx: { type: "string" },
+                  sentiment: { type: "string" },
+                  fear_greed: { type: "string" }
+                }
+              },
+              signals: { type: "array", maxItems: 3 },
+              risk: { type: "string" },
+              action: { type: "string" }
+            }
+          }
+        }
+      }
+    ]
+  });
+});
+
+// x402 Discovery for /alpha endpoint
+app.get('/alpha', (c) => {
+  return c.json({
+    x402Version: 1,
+    name: "x402 Alpha Intelligence - Full Report",
+    accepts: [{
+      scheme: "exact",
+      network: "stacks",
+      maxAmountRequired: CONTRACT.price.toString(),
+      resource: "/alpha",
+      description: "Full alpha intelligence report with all signals, risk assessment, whale activity, and AI-generated summary",
+      mimeType: "application/json",
+      payTo: CONTRACT.recipient,
+      maxTimeoutSeconds: 300,
+      asset: "STX",
+      outputSchema: {
+        input: {
+          type: "object",
+          properties: {
+            tokenType: { type: "string", enum: ["STX", "sBTC"], description: "Payment token type" }
+          }
+        },
+        output: {
+          type: "object",
+          properties: {
+            timestamp: { type: "string", format: "date-time" },
+            payment_verified: { type: "boolean" },
+            caller: { type: "string" },
+            market_snapshot: { type: "object" },
+            signals: { type: "array" },
+            alpha_summary: { type: "string" },
+            risk_assessment: { type: "object" },
+            yield_opportunity: { type: "object" }
+          }
+        }
+      }
+    }]
+  }, 402);
+});
+
 // Beautiful Frontend
 app.get('/', (c) => {
   const html = `<!DOCTYPE html>
@@ -574,8 +728,51 @@ app.post('/alpha', async (c) => {
 app.get('/alpha/quick', async (c) => {
   const paymentTxid = c.req.header('X-Payment');
 
+  // x402 discovery: return resource info when no payment provided
   if (!paymentTxid) {
-    return paymentRequired(c, '/alpha/quick', CONTRACT.quickPrice, CONTRACT.quickPriceSbtc);
+    return c.json({
+      x402Version: 1,
+      name: "x402 Alpha Intelligence - Quick Snapshot",
+      accepts: [{
+        scheme: "exact",
+        network: "stacks",
+        maxAmountRequired: CONTRACT.quickPrice.toString(),
+        resource: "/alpha/quick",
+        description: "Quick market snapshot with top 3 signals and overall risk level",
+        mimeType: "application/json",
+        payTo: CONTRACT.recipient,
+        maxTimeoutSeconds: 60,
+        asset: "STX",
+        outputSchema: {
+          input: {
+            type: "object",
+            properties: {
+              tokenType: { type: "string", enum: ["STX", "sBTC"], description: "Payment token type" }
+            }
+          },
+          output: {
+            type: "object",
+            properties: {
+              timestamp: { type: "string", format: "date-time" },
+              payment_verified: { type: "boolean" },
+              caller: { type: "string" },
+              quick_snapshot: {
+                type: "object",
+                properties: {
+                  btc: { type: "string" },
+                  stx: { type: "string" },
+                  sentiment: { type: "string" },
+                  fear_greed: { type: "string" }
+                }
+              },
+              signals: { type: "array", maxItems: 3 },
+              risk: { type: "string" },
+              action: { type: "string" }
+            }
+          }
+        }
+      }]
+    }, 402);
   }
 
   const verification = await verifyPayment(paymentTxid);
